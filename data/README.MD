@@ -40,7 +40,7 @@ Trước khi đưa vào mô hình, dữ liệu đã được:
 - **Mã hóa nhãn**:
   - Dùng **LabelEncoder** → nhãn số (0–3)
   - Dùng **OneHotEncoder** → vector nhị phân (cho mô hình softmax hoặc neural network)
-- **Chuẩn hóa giá trị pixel**: chia cho 127 → đưa về khoảng `[0, 1]`.
+- **Chuẩn hóa giá trị pixel**: chia cho 255 → đưa về khoảng `[0, 1]`.
 - **Đưa ảnh về dạng HOG:...**
 ---
 
