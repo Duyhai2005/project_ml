@@ -3,7 +3,7 @@
 Dự án Machine Learning dùng ảnh MRI não để phân loại 4 lớp: `glioma`, `meningioma`, `pituitary` và `notumor`. Pipeline chính nằm trong hai notebook:
 
 - `preprocessing_data.ipynb`: làm sạch ảnh, chuẩn hóa, trích xuất đặc trưng HOG, giảm chiều bằng PCA/LDA và trực quan hóa dữ liệu.
-- `classifier.ipynb`: huấn luyện, đánh giá các mô hình phân loại và chạy thêm một thí nghiệm hồi quy phụ.
+- `classifier.ipynb`: huấn luyện, so sánh và đánh giá các mô hình phân loại.
 
 > Lưu ý: Đây là dự án học tập/nghiên cứu, không dùng như công cụ chẩn đoán y tế.
 
@@ -11,7 +11,7 @@ Dự án Machine Learning dùng ảnh MRI não để phân loại 4 lớp: `glio
 
 ```text
 project_ml/
-├── classifier.ipynb              # Huấn luyện, đánh giá mô hình phân loại và hồi quy
+├── classifier.ipynb              # Huấn luyện và đánh giá mô hình phân loại
 ├── preprocessing_data.ipynb      # Tiền xử lý dữ liệu, HOG, PCA, LDA, clustering
 ├── PREPROCESSING.MD              # Tài liệu riêng cho bước tiền xử lý
 └── data/
@@ -79,10 +79,12 @@ Kích thước đặc trưng sau HOG:
 
 ## Mô hình
 
-`classifier.ipynb` so sánh hai mô hình phân loại:
+`classifier.ipynb` so sánh bốn mô hình phân loại:
 
 - `GaussianNB`
 - `LogisticRegression` softmax với `multi_class='multinomial'`, `solver='lbfgs'`, `max_iter=1000`
+- `MLPClassifier` trong pipeline `StandardScaler + MLPClassifier`, dùng mạng ẩn `(128, 64)`, `alpha=0.001`, `max_iter=200` và `early_stopping=True`
+- `SVC` phi tuyến trong pipeline `StandardScaler + SVC`, dùng RBF kernel với `C=10`, `gamma='scale'`, `class_weight='balanced'` và `cache_size=1000`
 
 Dữ liệu đầu vào được so sánh theo ba dạng:
 
@@ -90,43 +92,32 @@ Dữ liệu đầu vào được so sánh theo ba dạng:
 - HOG sau PCA
 - HOG sau LDA
 
-Notebook cũng có bước thử regularization cho Logistic Regression trên dữ liệu PCA để giảm overfitting, và một thí nghiệm hồi quy phụ dự đoán xác suất thuộc lớp `notumor`.
+`classifier.ipynb` đánh giá mô hình theo hai giai đoạn:
+
+1. Chia tập train thành train/validation theo các tỷ lệ `4:1`, `7:3`, `6:4` để so sánh hiệu suất và mức độ overfitting.
+2. Huấn luyện lại trên toàn bộ tập train và đánh giá trên tập test chính thức.
+
+Sau khi tổng hợp kết quả, notebook chọn SVM RBF trên dữ liệu HOG gốc làm mô hình tốt nhất, sau đó vẽ ma trận nhầm lẫn cho mô hình này.
 
 ## Kết quả chính
 
 Kết quả cuối cùng đang lưu trong notebook trên tập test:
 
-| Loại dữ liệu | Naive Bayes | Logistic Regression (Softmax) |
-| --- | ---: | ---: |
-| HOG gốc | 0.6171 | 0.8635 |
-| Sau PCA | 0.5774 | 0.8360 |
-| Sau LDA | 0.7239 | 0.7285 |
+| Loại dữ liệu | Naive Bayes | Logistic Regression (Softmax) | MLP Classifier | SVM (RBF Kernel) |
+| --- | ---: | ---: | ---: | ---: |
+| HOG gốc | 0.6171 | 0.8635 | 0.8970 | 0.9230 |
+| Sau PCA | 0.5774 | 0.8360 | 0.8284 | 0.8703 |
+| Sau LDA | 0.7239 | 0.7285 | 0.6995 | 0.6636 |
 
-Mô hình tốt nhất theo accuracy test đang là Logistic Regression trên HOG gốc với accuracy `0.8635`. Tuy nhiên mô hình này có dấu hiệu overfitting vì accuracy train đạt `1.0000`, test đạt `0.8635`.
+Trong các kết quả đã chạy sẵn, mô hình tốt nhất theo accuracy test là SVM (RBF Kernel) trên HOG gốc với accuracy `0.9230`.
 
-Thử nghiệm regularization cho Logistic Regression trên PCA cho kết quả đang lưu:
+Kết quả chi tiết của mô hình tốt nhất:
 
-- Train accuracy: `0.9884`
-- Test accuracy: `0.8596`
-- Chênh lệch train-test: `0.1288`
-
-## Thí nghiệm hồi quy phụ
-
-Notebook chuyển bài toán sang dạng hồi quy bằng cách:
-
-1. Chọn lớp mục tiêu `notumor`.
-2. Huấn luyện Logistic Regression để lấy xác suất softmax.
-3. Dùng xác suất thuộc lớp `notumor` làm nhãn hồi quy.
-4. So sánh `LinearRegression` và `MLPRegressor` trên HOG gốc và dữ liệu PCA giảm còn 1/3 số chiều.
-
-Kết quả đang lưu:
-
-| Dữ liệu đầu vào | Mô hình hồi quy | MSE | R-squared |
-| --- | --- | ---: | ---: |
-| HOG nguyên bản | Linear Regression | 0.050389 | 0.749976 |
-| HOG nguyên bản | MLPRegressor | 0.013150 | 0.934750 |
-| Giảm chiều 1/3 | Linear Regression | 0.026210 | 0.869950 |
-| Giảm chiều 1/3 | MLPRegressor | 0.011653 | 0.942177 |
+- Train accuracy: `1.0000`
+- Test accuracy: `0.9230`
+- Chênh lệch train-test: `0.0770`
+- Macro F1-score: `0.92`
+- Weighted F1-score: `0.92`
 
 ## Cài đặt môi trường
 
@@ -150,7 +141,7 @@ jupyter notebook
 Chạy notebook từ thư mục gốc của dự án:
 
 ```powershell
-cd C:\project_ml
+cd C:\project\project_ml
 ```
 
 Thứ tự khuyến nghị:
