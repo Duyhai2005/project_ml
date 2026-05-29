@@ -14,7 +14,6 @@ project_ml/
 ├── classifier.ipynb              # Huấn luyện, đánh giá mô hình phân loại và hồi quy
 ├── preprocessing_data.ipynb      # Tiền xử lý dữ liệu, HOG, PCA, LDA, clustering
 ├── PREPROCESSING.MD              # Tài liệu riêng cho bước tiền xử lý
-├── main.py                       # Hiện chưa có nội dung
 └── data/
     ├── README.MD                 # Mô tả bộ dữ liệu
     ├── raw/
@@ -151,7 +150,7 @@ jupyter notebook
 Chạy notebook từ thư mục gốc của dự án:
 
 ```powershell
-cd C:\project\project_ml
+cd C:\project_ml
 ```
 
 Thứ tự khuyến nghị:
@@ -163,8 +162,5 @@ Thứ tự khuyến nghị:
 
 ## Lưu ý kỹ thuật
 
-- `main.py` hiện đang trống, dự án chủ yếu chạy qua notebook.
 - Dataset được lưu cả raw và cleaned nên dung lượng repo lớn và có dữ liệu trùng lặp sau xử lý.
 - Một số cell chia train/validation cho PCA/LDA chưa đặt `random_state`, nên kết quả validation có thể thay đổi khi chạy lại.
-- Output của notebook có thể cũ nếu source cell đã được chỉnh nhưng chưa chạy lại toàn bộ notebook. Khi cần báo cáo chính thức, nên restart kernel và chạy lại từ đầu.
-- Chưa có bước lưu model ra file (`.pkl`, `.joblib`) hoặc script inference độc lập cho ảnh mới.
